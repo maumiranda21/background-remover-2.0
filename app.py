@@ -19,7 +19,6 @@ if 'dark_mode' not in st.session_state:
 # --- Barra Lateral ---
 with st.sidebar:
     st.header("🎨 Configuración")
-    # El toggle actualiza el estado de la sesión directamente
     st.session_state.dark_mode = st.toggle(
         "Activar Modo Noche", 
         value=st.session_state.dark_mode, 
@@ -36,12 +35,6 @@ light_theme = """
     /* --- TEMA CLARO --- */
     .stApp {
         background-color: #f0f2f6;
-        color: #31333F;
-    }
-    .st-emotion-cache-1y4p8pa { /* Encabezado y títulos */
-        color: #31333F;
-    }
-    .st-emotion-cache-16txtl3 { /* Texto normal */
         color: #31333F;
     }
     .stButton>button {
@@ -91,12 +84,6 @@ dark_theme = """
     /* --- TEMA OSCURO --- */
     .stApp {
         background-color: #0e1117;
-        color: #fafafa;
-    }
-    .st-emotion-cache-1y4p8pa { /* Encabezado y títulos */
-        color: #fafafa;
-    }
-    .st-emotion-cache-16txtl3 { /* Texto normal */
         color: #fafafa;
     }
     .stButton>button {
@@ -160,6 +147,11 @@ def create_zip(images, filenames):
             zip_file.writestr(filenames[i], img_buffer.getvalue())
     return zip_buffer.getvalue()
 
+def clear_uploads():
+    """Resetea el file_uploader a un estado vacío usando su clave."""
+    if 'file_uploader_key' in st.session_state:
+        st.session_state.file_uploader_key = []
+
 # --- Interfaz Principal ---
 st.title("✂️ Eliminador de Fondos Profesional")
 st.markdown("Sube una o varias imágenes para quitarles el fondo de forma automática y precisa.")
@@ -168,7 +160,8 @@ st.markdown("Sube una o varias imágenes para quitarles el fondo de forma autom�
 uploaded_files = st.file_uploader(
     "Selecciona tus imágenes (PNG, JPG, JPEG)",
     accept_multiple_files=True,
-    type=['png', 'jpg', 'jpeg']
+    type=['png', 'jpg', 'jpeg'],
+    key="file_uploader_key"  # Clave para poder resetearlo
 )
 
 if uploaded_files:
@@ -176,7 +169,15 @@ if uploaded_files:
     
     keep_filenames = st.checkbox("Mantener nombres de archivo originales", value=True)
     
-    if st.button("✨ ¡Quitar Fondos!"):
+    # --- Botones de acción en columnas ---
+    col1, col2 = st.columns(2)
+    with col1:
+        process_button = st.button("✨ ¡Quitar Fondos!", use_container_width=True)
+    with col2:
+        # El botón de limpiar usa el callback para vaciar el uploader
+        st.button("🧹 Limpiar y Empezar de Nuevo", on_click=clear_uploads, use_container_width=True)
+
+    if process_button:
         with st.spinner('Procesando... Esto puede tardar un momento...'):
             processed_images = []
             processed_filenames = []
