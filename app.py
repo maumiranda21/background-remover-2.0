@@ -148,9 +148,14 @@ def create_zip(images, filenames):
     return zip_buffer.getvalue()
 
 def clear_uploads():
-    """Resetea el file_uploader a un estado vacío usando su clave."""
+    """
+    Resetea el file_uploader borrando su clave de la sesión.
+    Esto evita el error StreamlitValueAssignmentNotAllowedError.
+    """
+    # La forma correcta de limpiar el uploader desde un callback es
+    # borrar su clave del estado de la sesión. Streamlit lo recreará vacío.
     if 'file_uploader_key' in st.session_state:
-        st.session_state.file_uploader_key = []
+        del st.session_state['file_uploader_key']
 
 # --- Interfaz Principal ---
 st.title("✂️ Eliminador de Fondos Profesional")
